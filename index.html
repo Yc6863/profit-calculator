@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利润计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: #111;
+            padding: 35px 25px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 12px;
+            font-size: 24px;
+        }
+
+        .desc {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 30px;
+        }
+
+        .form-item {
+            margin-bottom: 22px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #fff;
+            outline: none;
+            text-align: center;
+            /* 🆕 移动端弹数字键盘 + 禁止负数 */
+            inputmode: decimal;
+            min: 0;
+        }
+
+        input:focus {
+            border-color: #007bff;
+        }
+
+        .result-box {
+            margin-top: 22px;
+            padding: 18px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 6px;
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        /* 🆕 利润正负颜色 */
+        .result-value.positive {
+            color: #52c41a;
+        }
+
+        .result-value.negative {
+            color: #ff4d4f;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* 🆕 按钮样式 */
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-copy {
+            background: #007bff;
+            color: #fff;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .guide-module {
+            margin-top: 35px;
+            padding: 16px 20px;
+            background: linear-gradient(90deg, #ff4d4f, #ff7875);
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+        }
+
+        .guide-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        /* 🆕 利润率显示 */
+        .rate-row {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .rate-value {
+            color: #ffa940;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 利润计算器</h1>
+        <p class="desc">下单价格 - 返利 = 成本 → 回收行情 - 成本 = 利润</p>
+
+        <div class="form-item">
+            <label>下单价格（¥）</label>
+            <input type="number" id="price" placeholder="请输入下单价格" step="0.01" inputmode="decimal">
+        </div>
+
+        <div class="form-item">
+            <label>返利价格（¥）</label>
+            <input type="number" id="rebate" placeholder="请输入返利价格" step="0.01" inputmode="decimal">
+        </div>
+
+        <div class="form-item">
+            <label>回收行情（¥）</label>
+            <input type="number" id="recycle" placeholder="请输入回收行情" step="0.01" inputmode="decimal">
+        </div>
+
+        <div class="result-box">
+            <p class="result-title">成本 = 下单价格 - 返利</p>
+            <p class="result-value" id="cost">¥0.00</p>
+        </div>
+
+        <div class="result-box">
+            <p class="result-title">利润 = 回收行情 - 成本</p>
+            <p class="result-value" id="profit">¥0.00</p>
+            <!-- 🆕 利润率 -->
+            <div class="rate-row">
+                利润率：<span class="rate-value" id="rate">0.00%</span>
+            </div>
+        </div>
+
+        <!-- 🆕 操作按钮 -->
+        <div class="btn-group">
+            <button class="btn btn-reset" id="btnReset">🔄 清空</button>
+            <button class="btn btn-copy" id="btnCopy">📋 复制结果</button>
+        </div>
+
+        <div class="guide-module">
+            <p class="guide-text">商务合作加微信 lyp1014xx</p>
+        </div>
+    </div>
+
+    <script>
+        const priceInput = document.getElementById('price');
+        const rebateInput = document.getElementById('rebate');
+        const recycleInput = document.getElementById('recycle');
+        const costEl = document.getElementById('cost');
+        const profitEl = document.getElementById('profit');
+        const rateEl = document.getElementById('rate');
+
+        function calc() {
+            const price = parseFloat(priceInput.value) || 0;
+            const rebate = parseFloat(rebateInput.value) || 0;
+            const recycle = parseFloat(recycleInput.value) || 0;
+
+            const cost = price - rebate;
+            const profit = recycle - cost;
+            const rate = recycle > 0 ? ((profit / recycle) * 100) : 0;
+
+            costEl.textContent = `¥${cost.toFixed(2)}`;
+            profitEl.textContent = `¥${profit.toFixed(2)}`;
+            rateEl.textContent = `${rate.toFixed(2)}%`;
+
+            // 🆕 利润正负变色
+            profitEl.classList.remove('positive', 'negative');
+            if (profit > 0) {
+                profitEl.classList.add('positive');
+            } else if (profit < 0) {
+                profitEl.classList.add('negative');
+            }
+        }
+
+        // 🆕 清空按钮
+        document.getElementById('btnReset').addEventListener('click', () => {
+            priceInput.value = '';
+            rebateInput.value = '';
+            recycleInput.value = '';
+            calc();
+        });
+
+        // 🆕 复制结果按钮
+        document.getElementById('btnCopy').addEventListener('click', () => {
+            const cost = costEl.textContent;
+            const profit = profitEl.textContent;
+            const rate = rateEl.textContent;
+            const text = `成本：${cost}\n利润：${profit}\n利润率：${rate}`;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('btnCopy');
+                btn.textContent = '✅ 已复制';
+                setTimeout(() => btn.textContent = '📋 复制结果', 1500);
+            });
+        });
+
+        priceInput.addEventListener('input', calc);
+        rebateInput.addEventListener('input', calc);
+        recycleInput.addEventListener('input', calc);
+    </script>
+</body>
+</html>
