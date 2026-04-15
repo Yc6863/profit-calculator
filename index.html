@@ -2,265 +2,358 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>利润计算器</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
+        :root {
+            --bg: #000000;
+            --card-bg: #111111;
+            --card-border: #222222;
+            --input-bg: #1a1a1a;
+            --text-main: #ffffff;
+            --text-sub: #888888;
+            --primary: #007bff;
+            --profit: #52c41a;
+            --loss: #ff4d4f;
+            --price-color: #ffcc00;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        
         body {
-            background-color: #000;
-            padding: 20px;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            padding: 20px 16px 40px;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
             width: 100%;
             max-width: 420px;
-            background: #111;
-            padding: 35px 25px;
-            border-radius: 16px;
-            text-align: center;
-        }
-
-        h1 {
-            color: #fff;
-            margin-bottom: 12px;
-            font-size: 24px;
-        }
-
-        .desc {
-            font-size: 13px;
-            color: #999;
-            margin-bottom: 30px;
-        }
-
-        .form-item {
-            margin-bottom: 22px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #e0e0e0;
-            font-size: 14px;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 8px;
-            font-size: 16px;
-            color: #fff;
-            outline: none;
-            text-align: center;
-            /* 🆕 移动端弹数字键盘 + 禁止负数 */
-            inputmode: decimal;
-            min: 0;
-        }
-
-        input:focus {
-            border-color: #007bff;
-        }
-
-        .result-box {
-            margin-top: 22px;
-            padding: 18px;
-            background: #1a1a1a;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .result-title {
-            font-size: 14px;
-            color: #ccc;
-            margin-bottom: 6px;
-        }
-
-        .result-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        /* 🆕 利润正负颜色 */
-        .result-value.positive {
-            color: #52c41a;
-        }
-
-        .result-value.negative {
-            color: #ff4d4f;
-        }
-
-        .btn-group {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        /* 🆕 按钮样式 */
-        .btn {
-            flex: 1;
+        .header { text-align: center; margin-bottom: 4px; }
+        .header h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+        .header p { font-size: 12px; color: var(--text-sub); }
+
+        /* 🆕 顶部快捷选择栏 */
+        .quick-select-section { margin-bottom: 4px; }
+        .qs-label { font-size: 13px; color: var(--text-sub); margin-bottom: 6px; display: block; }
+        .qs-trigger {
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
             padding: 14px;
-            border: none;
-            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-main);
             font-size: 15px;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
+            user-select: none;
         }
+        .qs-trigger:active { border-color: var(--primary); background: #1f1f1f; }
+        .qs-arrow { font-size: 12px; color: var(--text-sub); transition: transform 0.3s; }
+        .qs-trigger.active .qs-arrow { transform: rotate(180deg); }
 
-        .btn-reset {
-            background: #333;
-            color: #fff;
+        /* 输入与计算区 */
+        .calc-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
         }
-
-        .btn-copy {
-            background: #007bff;
-            color: #fff;
-        }
-
-        .btn:hover {
-            opacity: 0.85;
-        }
-
-        .guide-module {
-            margin-top: 35px;
-            padding: 16px 20px;
-            background: linear-gradient(90deg, #ff4d4f, #ff7875);
-            border-radius: 10px;
+        .input-item { margin-bottom: 16px; }
+        .input-item:last-child { margin-bottom: 0; }
+        .input-item label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 8px; }
+        .input-item input {
+            width: 100%;
+            padding: 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-size: 18px;
+            color: var(--text-main);
+            outline: none;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+            font-weight: 500;
+        }
+        .input-item input:focus { border-color: #444; }
+        
+        .result-item {
+            text-align: center;
+            padding: 16px 0;
+            border-top: 1px solid #222;
+            margin-top: 16px;
+        }
+        .result-item .title { font-size: 13px; color: var(--text-sub); margin-bottom: 6px; }
+        .result-item .value { font-size: 36px; font-weight: bold; color: var(--primary); transition: color 0.3s; }
+        .result-item .value.profit { color: var(--profit); }
+        .result-item .value.loss { color: var(--loss); }
+
+        .btn-clear {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid #333;
+            border-radius: 20px;
+            color: var(--text-sub);
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-clear:active { background: #111; color: #fff; }
+
+        /* 底部价格参考表 */
+        .ref-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 8px;
+        }
+        .ref-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+        .ref-subtitle { font-size: 13px; color: var(--text-sub); margin-bottom: 16px; }
+
+        .ref-table { width: 100%; border-collapse: collapse; }
+        .ref-row {
+            border-bottom: 1px solid #222;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .ref-row:last-child { border-bottom: none; }
+        .ref-row:active { background: #1a1a1a; }
+        .ref-row td { padding: 14px 0; }
+        .col-name { font-size: 16px; font-weight: 500; color: #eee; }
+        .col-price { text-align: right; font-size: 18px; font-weight: bold; color: var(--price-color); }
+
+        .notice {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+            text-align: justify;
         }
 
-        .guide-text {
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            letter-spacing: 1px;
+        .footer {
+            margin-top: 20px;
+            padding: 14px;
+            background: linear-gradient(90deg, #ff4d4f, #ff7875);
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255,77,79,0.3);
         }
+        .footer p { font-size: 15px; font-weight: bold; color: #fff; letter-spacing: 1px; }
 
-        /* 🆕 利润率显示 */
-        .rate-row {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #888;
+        /* 🆕 底部弹出选择器 */
+        .picker-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.65); opacity: 0; visibility: hidden;
+            transition: all 0.3s; z-index: 100; display: flex; align-items: flex-end;
         }
-
-        .rate-value {
-            color: #ffa940;
-            font-weight: bold;
+        .picker-overlay.show { opacity: 1; visibility: visible; }
+        .picker-sheet {
+            width: 100%; background: #1a1a1a; border-radius: 16px 16px 0 0;
+            padding: 20px 0 30px; transform: translateY(100%); 
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            max-height: 60vh; display: flex; flex-direction: column;
+        }
+        .picker-overlay.show .picker-sheet { transform: translateY(0); }
+        .picker-header { text-align: center; font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px; padding: 0 20px; }
+        .picker-list { overflow-y: auto; flex: 1; padding: 0 16px; -webkit-overflow-scrolling: touch; }
+        .picker-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 0; border-bottom: 1px solid #333; color: #eee; font-size: 16px; cursor: pointer;
+        }
+        .picker-item:last-child { border-bottom: none; }
+        .picker-item:active { background: #222; }
+        .picker-price { color: var(--price-color); font-weight: bold; }
+        .picker-close {
+            margin: 16px 16px 0; padding: 14px; text-align: center; background: #333;
+            color: #fff; border-radius: 10px; font-size: 15px; cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>💰 利润计算器</h1>
-        <p class="desc">下单价格 - 返利 = 成本 → 回收行情 - 成本 = 利润</p>
-
-        <div class="form-item">
-            <label>下单价格（¥）</label>
-            <input type="number" id="price" placeholder="请输入下单价格" step="0.01" inputmode="decimal">
+        <div class="header">
+            <h1>利润计算器</h1>
+            <p>下单价格 - 返利 = 成本 → 回收行情 - 成本 = 利润</p>
         </div>
 
-        <div class="form-item">
-            <label>返利价格（¥）</label>
-            <input type="number" id="rebate" placeholder="请输入返利价格" step="0.01" inputmode="decimal">
-        </div>
-
-        <div class="form-item">
-            <label>回收行情（¥）</label>
-            <input type="number" id="recycle" placeholder="请输入回收行情" step="0.01" inputmode="decimal">
-        </div>
-
-        <div class="result-box">
-            <p class="result-title">成本 = 下单价格 - 返利</p>
-            <p class="result-value" id="cost">¥0.00</p>
-        </div>
-
-        <div class="result-box">
-            <p class="result-title">利润 = 回收行情 - 成本</p>
-            <p class="result-value" id="profit">¥0.00</p>
-            <!-- 🆕 利润率 -->
-            <div class="rate-row">
-                利润率：<span class="rate-value" id="rate">0.00%</span>
+        <!-- 🆕 顶部快捷选择栏 -->
+        <div class="quick-select-section">
+            <span class="qs-label">商品快捷选择</span>
+            <div class="qs-trigger" id="qsTrigger">
+                <span id="qsText">请选择商品（自动带入回收行情）</span>
+                <span class="qs-arrow">▼</span>
             </div>
         </div>
 
-        <!-- 🆕 操作按钮 -->
-        <div class="btn-group">
-            <button class="btn btn-reset" id="btnReset">🔄 清空</button>
-            <button class="btn btn-copy" id="btnCopy">📋 复制结果</button>
+        <!-- 输入与计算区 -->
+        <div class="calc-card">
+            <div class="input-item">
+                <label>下单价格 (¥)</label>
+                <input type="number" id="price" placeholder="0.00" step="0.01" inputmode="decimal">
+            </div>
+            <div class="input-item">
+                <label>返利价格 (¥)</label>
+                <input type="number" id="rebate" placeholder="0.00" step="0.01" inputmode="decimal">
+            </div>
+            <div class="input-item">
+                <label>回收行情 (¥)</label>
+                <input type="number" id="recycle" placeholder="0.00" step="0.01" inputmode="decimal">
+            </div>
+
+            <div class="result-item">
+                <div class="title">成本 = 下单价格 - 返利</div>
+                <div class="value" id="cost">¥0.00</div>
+            </div>
+            <div class="result-item" style="border-top:none; margin-top:0; padding-top:0;">
+                <div class="title">利润 = 回收行情 - 您的成本价格</div>
+                <div class="value" id="profit">¥0.00</div>
+            </div>
         </div>
 
-        <div class="guide-module">
-            <p class="guide-text">作者合作lyp1014xx</p>
+        <button class="btn-clear" id="btnClear">清空重置</button>
+
+        <!-- 底部价格参考表 -->
+        <div class="ref-card">
+            <div class="ref-title">价格参考表</div>
+            <div class="ref-subtitle">点价格可直接填入“回收行情”</div>
+            
+            <table class="ref-table">
+                <tbody id="refTableBody"></tbody>
+            </table>
+
+            <div class="notice">
+                <strong>日期说明：</strong>葛儿舒 25年4月后；肽敏舒 25年4月后；恩敏舒 25年4月后；纽康特 25年8月后；纽太特 25年8月后；纽太特/纽康特 7月 - 3。<br><br>
+                <strong>补充说明：</strong>特配日期不符减 10-20；实际以当天行情和日期为准。
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>商务合作加微信 lyp1014xx</p>
+        </div>
+    </div>
+
+    <!-- 🆕 选择器弹窗 -->
+    <div class="picker-overlay" id="pickerOverlay">
+        <div class="picker-sheet">
+            <div class="picker-header">请选择商品（自动带入回收行情）</div>
+            <div class="picker-list" id="pickerList"></div>
+            <div class="picker-close" id="pickerClose">取消</div>
         </div>
     </div>
 
     <script>
+        // 商品数据源
+        const PRODUCTS = [
+            { name: "小佰太", price: 248 },
+            { name: "葛儿舒", price: 273 },
+            { name: "肽敏舒 400g", price: 295 },
+            { name: "恩敏舒", price: 388 },
+            { name: "纽康特 400g", price: 314 },
+            { name: "纽太特 450g", price: 289 }
+        ];
+
+        // DOM 元素
         const priceInput = document.getElementById('price');
         const rebateInput = document.getElementById('rebate');
         const recycleInput = document.getElementById('recycle');
         const costEl = document.getElementById('cost');
         const profitEl = document.getElementById('profit');
-        const rateEl = document.getElementById('rate');
+        const qsTrigger = document.getElementById('qsTrigger');
+        const qsText = document.getElementById('qsText');
+        const pickerOverlay = document.getElementById('pickerOverlay');
+        const pickerList = document.getElementById('pickerList');
+        const pickerClose = document.getElementById('pickerClose');
+        const refTableBody = document.getElementById('refTableBody');
 
-        function calc() {
+        // 1. 渲染顶部选择器列表（页面加载立即执行，杜绝空白）
+        PRODUCTS.forEach(p => {
+            const item = document.createElement('div');
+            item.className = 'picker-item';
+            item.innerHTML = `<span>${p.name}</span><span class="picker-price">¥${p.price}</span>`;
+            item.onclick = () => handleSelect(p);
+            pickerList.appendChild(item);
+        });
+
+        // 2. 渲染底部参考表
+        PRODUCTS.forEach(p => {
+            const row = document.createElement('tr');
+            row.className = 'ref-row';
+            row.innerHTML = `<td class="col-name">${p.name}</td><td class="col-price">¥${p.price}</td>`;
+            row.onclick = () => {
+                recycleInput.value = p.price;
+                qsText.textContent = `${p.name} · ¥${p.price}`; // 同步更新顶部状态
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                calculate();
+            };
+            refTableBody.appendChild(row);
+        });
+
+        // 3. 选择处理函数
+        function handleSelect(product) {
+            recycleInput.value = product.price;
+            qsText.textContent = `${product.name} · ¥${product.price}`;
+            closePicker();
+            calculate();
+        }
+
+        // 4. 弹窗控制
+        function openPicker() {
+            pickerOverlay.classList.add('show');
+            qsTrigger.classList.add('active');
+        }
+        function closePicker() {
+            pickerOverlay.classList.remove('show');
+            qsTrigger.classList.remove('active');
+        }
+
+        qsTrigger.onclick = openPicker;
+        pickerOverlay.onclick = (e) => { if(e.target === pickerOverlay) closePicker(); };
+        pickerClose.onclick = closePicker;
+
+        // 5. 核心计算逻辑
+        function calculate() {
             const price = parseFloat(priceInput.value) || 0;
             const rebate = parseFloat(rebateInput.value) || 0;
             const recycle = parseFloat(recycleInput.value) || 0;
 
             const cost = price - rebate;
             const profit = recycle - cost;
-            const rate = recycle > 0 ? ((profit / recycle) * 100) : 0;
 
             costEl.textContent = `¥${cost.toFixed(2)}`;
             profitEl.textContent = `¥${profit.toFixed(2)}`;
-            rateEl.textContent = `${rate.toFixed(2)}%`;
 
-            // 🆕 利润正负变色
-            profitEl.classList.remove('positive', 'negative');
-            if (profit > 0) {
-                profitEl.classList.add('positive');
-            } else if (profit < 0) {
-                profitEl.classList.add('negative');
-            }
+            profitEl.className = 'value';
+            if (profit > 0) profitEl.classList.add('profit');
+            else if (profit < 0) profitEl.classList.add('loss');
         }
 
-        // 🆕 清空按钮
-        document.getElementById('btnReset').addEventListener('click', () => {
+        // 6. 监听手动输入
+        [priceInput, rebateInput, recycleInput].forEach(input => {
+            input.addEventListener('input', calculate);
+        });
+
+        // 7. 清空按钮
+        document.getElementById('btnClear').onclick = () => {
             priceInput.value = '';
             rebateInput.value = '';
             recycleInput.value = '';
-            calc();
-        });
+            qsText.textContent = '请选择商品（自动带入回收行情）';
+            calculate();
+        };
 
-        // 🆕 复制结果按钮
-        document.getElementById('btnCopy').addEventListener('click', () => {
-            const cost = costEl.textContent;
-            const profit = profitEl.textContent;
-            const rate = rateEl.textContent;
-            const text = `成本：${cost}\n利润：${profit}\n利润率：${rate}`;
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = document.getElementById('btnCopy');
-                btn.textContent = '✅ 已复制';
-                setTimeout(() => btn.textContent = '📋 复制结果', 1500);
-            });
-        });
-
-        priceInput.addEventListener('input', calc);
-        rebateInput.addEventListener('input', calc);
-        recycleInput.addEventListener('input', calc);
+        // 初始化计算
+        calculate();
     </script>
 </body>
 </html>
